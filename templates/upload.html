@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+
+<p class="section-title">Upload stops via CSV</p>
+<p class="section-sub">Upload a CSV file with your delivery stops. The route will be optimized automatically.</p>
+
+<div class="card">
+  <h2>CSV format</h2>
+  <div class="csv-hint">
+    Your CSV must have exactly two columns: <code>stop_name</code> and <code>distance_km</code><br><br>
+    Example:<br>
+    <code>stop_name,distance_km</code><br>
+    <code>Kakinada Market,5.2</code><br>
+    <code>Samalkota,12.0</code><br>
+    <code>Pithapuram,18.5</code>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Upload file</h2>
+  <form method="POST" enctype="multipart/form-data">
+    <div style="margin-bottom: 1rem;">
+      <label>Select CSV file</label>
+      <input type="file" name="csv_file" accept=".csv" required />
+    </div>
+    <div class="form-row">
+      <div>
+        <label>Fuel price (₹ per litre)</label>
+        <input type="number" name="fuel_price" value="100" step="0.1" required />
+      </div>
+      <div>
+        <label>Vehicle mileage (km per litre)</label>
+        <input type="number" name="mileage" value="12" step="0.1" required />
+      </div>
+      <div>
+        <label>Driver rate (₹ per hour)</label>
+        <input type="number" name="driver_rate" value="50" step="1" required />
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Upload & optimize →</button>
+  </form>
+</div>
+
+{% if result %}
+<div class="card">
+  <h2>Optimized route result</h2>
+  <div style="margin-bottom: 1.25rem;">
+    <p style="font-size:0.82rem; color:#888; margin-bottom:8px;">Depot → Stops → Return to depot</p>
+    <span style="font-size:0.9rem; font-weight:600; color:#555;">Depot</span>
+    {% for stop in result.stops %}
+      <span class="arrow">→</span>
+      <span class="stop-badge">{{ stop }}</span>
+    {% endfor %}
+    <span class="arrow">→</span>
+    <span style="font-size:0.9rem; font-weight:600; color:#555;">Depot</span>
+  </div>
+  <div class="result-grid">
+    <div class="metric"><div class="val">{{ result.total_distance }} km</div><div class="lbl">Total distance</div></div>
+    <div class="metric"><div class="val">{{ result.estimated_time }} hrs</div><div class="lbl">Estimated time</div></div>
+    <div class="metric"><div class="val">{{ result.litres_used }} L</div><div class="lbl">Fuel used</div></div>
+    <div class="metric"><div class="val">₹{{ result.fuel_cost }}</div><div class="lbl">Fuel cost</div></div>
+    <div class="metric"><div class="val">₹{{ result.driver_cost }}</div><div class="lbl">Driver cost</div></div>
+    <div class="metric" style="background:#eafaf1; border-color:#a9dfbf;">
+      <div class="val" style="color:#1e8449;">₹{{ result.total_cost }}</div>
+      <div class="lbl">Total cost</div>
+    </div>
+  </div>
+  <div class="chart-grid">
+    <img src="/static/charts/route_stops.png" alt="Route stops chart" />
+    <img src="/static/charts/cost_pie.png" alt="Cost pie chart" />
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block content %}
+
+<p class="section-title">Plan a delivery route</p>
+<p class="section-sub">Add your stops and distances. Get the optimized order with cost and savings.</p>
+
+<div class="card">
+  <h2>Vehicle & cost settings</h2>
+  <form method="POST" id="routeForm">
+    <div class="form-row">
+      <div>
+        <label>Fuel price (₹ per litre)</label>
+        <input type="number" name="fuel_price" value="100" step="0.1" required />
+      </div>
+      <div>
+        <label>Vehicle mileage (km per litre)</label>
+        <input type="number" name="mileage" value="12" step="0.1" required />
+      </div>
+      <div>
+        <label>Driver rate (₹ per hour)</label>
+        <input type="number" name="driver_rate" value="50" step="1" required />
+      </div>
+    </div>
+
+    <h2 style="margin-top:1.25rem;">Delivery stops</h2>
+    <p style="font-size:0.82rem; color:#888; margin-bottom:1rem;">Enter each stop and its distance from depot in km.</p>
+
+    <div id="stopsContainer">
+      <div class="stop-row">
+        <div><label>Stop name</label><input type="text" name="stop_name[]" placeholder="e.g. Kakinada Market" required /></div>
+        <div><label>Distance from depot (km)</label><input type="number" name="stop_distance[]" placeholder="e.g. 5.2" step="0.1" required /></div>
+        <div style="display:flex;align-items:flex-end;"><span style="color:#ccc;">—</span></div>
+      </div>
+      <div class="stop-row">
+        <div><input type="text" name="stop_name[]" placeholder="e.g. Samalkota" required /></div>
+        <div><input type="number" name="stop_distance[]" placeholder="e.g. 12.0" step="0.1" required /></div>
+        <div style="display:flex;align-items:flex-end;"><span style="color:#ccc;">—</span></div>
+      </div>
+    </div>
+
+    <button type="button" onclick="addStop()" class="btn btn-secondary" style="margin:0.75rem 0 1.25rem;">+ Add stop</button>
+    <div>
+      <button type="submit" class="btn btn-primary">Optimize route →</button>
+    </div>
+  </form>
+</div>
+
+{% if result %}
+<div class="card">
+  <h2>Optimized route result</h2>
+
+  <div style="margin-bottom:1.25rem;">
+    <p style="font-size:0.82rem; color:#888; margin-bottom:8px;">Depot → Stops → Return to depot</p>
+    <span style="font-size:0.9rem; font-weight:600; color:#555;">Depot</span>
+    {% for stop in result.stops %}
+      <span class="arrow">→</span>
+      <span class="stop-badge">{{ stop }}</span>
+    {% endfor %}
+    <span class="arrow">→</span>
+    <span style="font-size:0.9rem; font-weight:600; color:#555;">Depot</span>
+  </div>
+
+  {% if result.savings_km > 0 %}
+  <div style="background:#eafaf1; border:1.5px solid #a9dfbf; border-radius:10px; padding:1rem 1.25rem; margin-bottom:1.25rem; display:flex; gap:2rem; flex-wrap:wrap;">
+    <div>
+      <div style="font-size:1.4rem; font-weight:700; color:#1e8449;">{{ result.savings_km }} km saved</div>
+      <div style="font-size:0.8rem; color:#888;">vs unoptimized order</div>
+    </div>
+    <div>
+      <div style="font-size:1.4rem; font-weight:700; color:#1e8449;">₹{{ result.savings_cost }} saved</div>
+      <div style="font-size:0.8rem; color:#888;">total cost reduction</div>
+    </div>
+    <div>
+      <div style="font-size:1.4rem; font-weight:700; color:#e74c3c;">{{ result.unopt_distance }} km</div>
+      <div style="font-size:0.8rem; color:#888;">unoptimized distance</div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="result-grid">
+    <div class="metric"><div class="val">{{ result.total_distance }} km</div><div class="lbl">Optimized distance</div></div>
+    <div class="metric"><div class="val">{{ result.estimated_time }} hrs</div><div class="lbl">Estimated time</div></div>
+    <div class="metric"><div class="val">{{ result.litres_used }} L</div><div class="lbl">Fuel used</div></div>
+    <div class="metric"><div class="val">₹{{ result.fuel_cost }}</div><div class="lbl">Fuel cost</div></div>
+    <div class="metric"><div class="val">₹{{ result.driver_cost }}</div><div class="lbl">Driver cost</div></div>
+    <div class="metric" style="background:#eafaf1; border-color:#a9dfbf;">
+      <div class="val" style="color:#1e8449;">₹{{ result.total_cost }}</div>
+      <div class="lbl">Total cost</div>
+    </div>
+  </div>
+
+  <div class="chart-grid">
+    <img src="/static/charts/route_stops.png" alt="Route stop distances" />
+    <img src="/static/charts/cost_pie.png" alt="Cost breakdown" />
+  </div>
+</div>
+{% endif %}
+
+<script>
+  function addStop() {
+    const container = document.getElementById('stopsContainer');
+    const div = document.createElement('div');
+    div.className = 'stop-row';
+    div.innerHTML = `
+      <div><input type="text" name="stop_name[]" placeholder="Stop name" required /></div>
+      <div><input type="number" name="stop_distance[]" placeholder="Distance (km)" step="0.1" required /></div>
+      <div style="display:flex;align-items:flex-end;">
+        <button type="button" onclick="this.closest('.stop-row').remove()" class="btn btn-danger">✕</button>
+      </div>`;
+    container.appendChild(div);
+  }
+</script>
+{% endblock %}

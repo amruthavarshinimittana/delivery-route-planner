@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+
+<p class="section-title">Route history</p>
+<p class="section-sub">All saved routes with cost and distance trends.</p>
+
+{% if charts %}
+<div class="card">
+  <h2>Trends across recent routes</h2>
+  <div class="chart-grid">
+    {% if charts.distance %}
+    <img src="/static/charts/history_distance.png" alt="Distance history" />
+    {% endif %}
+    {% if charts.cost %}
+    <img src="/static/charts/history_cost.png" alt="Cost trend" />
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>All saved routes</h2>
+  {% if routes %}
+  <table>
+    <thead>
+      <tr>
+        <th>#</th><th>Date</th><th>Stops</th><th>Distance</th><th>Time</th><th>Fuel</th><th>Driver</th><th>Total</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in routes %}
+      <tr>
+        <td style="color:#aaa;">{{ r.id }}</td>
+        <td>{{ r.date }}</td>
+        <td>{% for s in r.stops %}<span class="badge-stops">{{ s }}</span>{% endfor %}</td>
+        <td><strong>{{ r.total_distance }} km</strong></td>
+        <td>{{ r.estimated_time }} hrs</td>
+        <td>₹{{ r.fuel_cost }}</td>
+        <td>₹{{ r.driver_cost }}</td>
+        <td><strong style="color:#1e8449;">₹{{ r.total_cost }}</strong></td>
+        <td>
+          <form method="POST" action="/delete/{{ r.id }}" onsubmit="return confirm('Delete this route?')">
+            <button type="submit" class="btn btn-danger">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color:#aaa;">No routes saved yet. Plan your first route on the home page.</p>
+  {% endif %}
+</div>
+{% endblock %}
